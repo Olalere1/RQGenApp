@@ -1,0 +1,57 @@
+pipeline {
+    agent any
+
+    environment {
+        MINIKUBE_HOME = '/path/to/minikube/home' // Specify Minikube home directory
+        KUBECONFIG = "${MINIKUBE_HOME}/.kube/config"
+        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials') // Jenkins credentials for Docker Hub
+        GIT_REPO_URL = 'https://github.com/yourusername/your-repo.git' // GitHub repository URL
+        KUBERNETES_NAMESPACE = 'your-namespace' // Kubernetes namespace for deployment
+    }
+
+    stages {
+        stage('Initialize Minikube') {
+            steps {
+                script {
+                    sh "minikube start --driver=your-driver --profile=minikube-profile" // Start Minikube
+                    sh "minikube update-context --profile=minikube-profile" // Update context
+                }
+            }
+        }
+
+        stage('Deploy Pod') {
+            steps {
+                script {
+                    git branch: 'master', credentialsId: 'your-git-credentials', url: GIT_REPO_URL // Clone the repository
+                    withCredentials([usernamePassword(credentialsId: DOCKER_HUB_CREDENTIALS, usernameVariable: 'DOCKER_HUB_USERNAME', passwordVariable: 'DOCKER_HUB_PASSWORD')]) {
+                        sh "kubectl --kubeconfig=${KUBECONFIG} apply -f path/to/your/kubernetes/deployment.yaml -n ${KUBERNETES_NAMESPACE}" // Apply deployment
+                    }
+                }
+            }
+        }
+
+        stage('Confirm Deployment') {
+            steps {
+                script {
+                    sh "kubectl --kubeconfig=${KUBECONFIG} rollout status deployment/your-deployment -n ${KUBERNETES_NAMESPACE}" // Confirm deployment status
+                }
+            }
+        }
+
+        stage('Port Forwarding') {
+            steps {
+                script {
+                    sh "kubectl --kubeconfig=${KUBECONFIG} port-forward deployment/your-deployment 8080:80 -n ${KUBERNETES_NAMESPACE}" // Port forwarding
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                sh "minikube stop -p minikube-profile" // Stop Minikube after the pipeline completes
+            }
+        }
+    }
+}
