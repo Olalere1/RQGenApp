@@ -19,7 +19,7 @@ metadata:
   name: webapp-statefulset
 spec:
   serviceName: "rqgen" # Service name for the StatefulSet
-  replicas: 2 # Number of replicas/pods
+  replicas: 1 # Number of replicas/pods
   selector:
     matchLabels:
       app: web-nginx # Label for selecting pods
