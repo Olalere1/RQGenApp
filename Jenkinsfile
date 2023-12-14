@@ -18,7 +18,7 @@ pipeline {
     stage('Build image') { //building, naming the image and saving as a variable
       steps{
         script {
-          dockerImage = docker.build olalere1webappimage10
+          dockerImage = docker.build dockerimagename
         }
       }
     }
