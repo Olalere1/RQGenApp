@@ -40,12 +40,14 @@ pipeline {
             }
         }
     }
-
-    post {
-        always {
-            script {
-                // Cleanup steps, if any
-            }
-        }
-    }
 }
+
+
+
+// post {
+       // always {
+            //script {
+                // Cleanup steps, if any
+            //}
+       // }
+    //}
