@@ -16,19 +16,21 @@ pipeline {
     stage('Building image') {
       steps{
         script {
+          docker.withRegistry( 'https://registry.hub.docker.com', registryCredential ) {
           //dockerImage = docker.build 'https://github.com/Olalere1/RQGenApp/blob/main/Dockerfile'
-          dockerImage = docker.build("${env.imagename}:latest", "${env.DOCKERFILE_PATH}")
+            dockerImage = docker.build("${env.imagename}:latest", "${env.DOCKERFILE_PATH}")
+          }
         }
       }
     }
     stage('Deploy Image') {
       steps{
         script {
-          docker.withRegistry( 'https://registry.hub.docker.com', registryCredential ) {
+          //docker.withRegistry( 'https://registry.hub.docker.com', registryCredential ) {
             dockerImage.push("$BUILD_NUMBER")
              dockerImage.push('latest')
 
-          }
+         // }
         }
       }
     }
