@@ -2,6 +2,7 @@ pipeline {
   environment {
     imagename = "olalere1/webappimage10"
     registryCredential = 'dockerhublogin'
+    DOCKERFILE_PATH = 'https://github.com/Olalere1/RQGenApp/blob/main/Dockerfile'
     dockerImage = ''
   }
   agent any
@@ -15,7 +16,8 @@ pipeline {
     stage('Building image') {
       steps{
         script {
-          dockerImage = docker.build 'https://github.com/Olalere1/RQGenApp/blob/main/Dockerfile'
+          //dockerImage = docker.build 'https://github.com/Olalere1/RQGenApp/blob/main/Dockerfile'
+          dockerImage = docker.build("${env.imagename}:latest", "${env.DOCKERFILE_PATH}")
         }
       }
     }
