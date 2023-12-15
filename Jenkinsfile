@@ -36,7 +36,7 @@ pipeline {
         script {
           sh "sed -i 's,TEST_IMAGE_NAME,olalere1/webappimage10:$BUILD_NUMBER,' service_volume_statefulset.yml"
           sh "cat service_volume_statefulset.yml"
-          sh "kubectl --kubeconfig=/Users/ola/.kube/config get pods"
+          sh "kubectl --kubeconfig=/Users/ola/.kube/config get pods"                                     // /Users/ola/Documents/config
           sh "kubectl --kubeconfig=/Users/ola/.kube/config apply -f service_volume_statefulset.yml"
         }
       }
