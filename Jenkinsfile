@@ -2,7 +2,7 @@ pipeline {
   environment {
     imagename = "olalere1/webappimage10"
     registryCredential = 'dockerhublogin'
-    DOCKERFILE_PATH = 'https://github.com/Olalere1/RQGenApp/blob/main/Dockerfile'
+    DOCKERFILE_PATH = 'https://raw.githubusercontent.com/Olalere1/RQGenApp/main/Dockerfile'
     dockerImage = ''
   }
   agent any
