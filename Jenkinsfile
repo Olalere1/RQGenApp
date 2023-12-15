@@ -1,49 +1,51 @@
 pipeline {
+    agent any
 
-  environment {
-    dockerimagename = "olalere1webappimage10"
-    dockerImage = ""
-  }
+    environment {
+        DOCKER_HUB_CREDENTIALS = credentials('dockerhublogin')
+        KUBE_CONFIG = credentials('kubernetes')
+        GITHUB_REPO_URL = 'https://github.com/Olalere1/RQGenApp.git'
+        DOCKERFILE_PATH = 'https://github.com/Olalere1/RQGenApp/blob/main/Dockerfile'
+        //IMAGE_NAME = sh(script: "grep -oP '(?<=^\\s*FROM\\s+)[^\\s]+' ${DOCKERFILE_PATH}", returnStdout: true).trim()
+        IMAGE_NAME = sh(script: "grep -oP '(?<=^\\s*FROM\\s+)[^\\s]+' ${DOCKERFILE_PATH}", returnStdout: true).trim()
+    }   
 
-  agent any
-
-  stages {
-
-    stage('Checkout Source') { // checking your git repo
-      steps {
-        git 'https://github.com/Olalere1/RQGenApp.git'
-      }
-    }
-
-    stage('Build image') { //building, naming the image and saving as a variable
-      steps{
-        script {
-          dockerImage = docker.build dockerimagename
+    stages {
+        stage('Clone Repository') {
+            steps {
+                script {
+                    checkout([$class: 'GitSCM', branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: "${env.GITHUB_REPO_URL}"]]])
+                }
+            }
         }
-      }
-    }
 
-    stage('Pushing Image') { //N.B: registry credentials that must have been configured to your jenkins servers
-      environment {
-               registryCredential = 'dockerhublogin'
-           }
-      steps{
-        script {
-          docker.withRegistry( 'https://registry.hub.docker.com', registryCredential ) { //N.B: check the validity of the registry URL
-            dockerImage.push("latest")
-          }
+        stage('Build and Push Docker Image') {
+            steps {
+                script {
+                    def dockerImage = docker.build("${env.IMAGE_NAME}:latest", "${env.DOCKERFILE_PATH}")
+                    docker.withRegistry('https://registry.hub.docker.com', "${env.DOCKER_HUB_CREDENTIALS}") {
+                        dockerImage.push()
+                    }
+                }
+            }
         }
-      }
-    }
 
-    stage('Deploying App to Kubernetes') { //N.B: update the kubeconfigId value when credentials are eventually added to the Jenkins server
-      steps {
-        script {
-          kubernetesDeploy(configs: "service_volume_statefulset.yml", kubeconfigId: "kubernetes")
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    withCredentials([file(credentialsId: "${env.KUBE_CONFIG}", variable: 'KUBE_CONFIG_FILE')]) {
+                        sh "kubectl --kubeconfig=${KUBE_CONFIG_FILE} apply -f https://github.com/Olalere1/RQGenApp/blob/main/service_volume_statefulset.yml"
+                    }
+                }
+            }
         }
-      }
     }
 
-  }
-
+    post {
+        always {
+            script {
+                // Cleanup steps, if any
+            }
+        }
+    }
 }
