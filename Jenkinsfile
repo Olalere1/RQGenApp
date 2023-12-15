@@ -15,7 +15,7 @@ pipeline {
     stage('Building image') {
       steps{
         script {
-          dockerImage = docker.build imagename
+          dockerImage = docker.build 'https://github.com/Olalere1/RQGenApp/blob/main/Dockerfile'
         }
       }
     }
