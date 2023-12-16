@@ -10,7 +10,7 @@ COPY ./server.js /app/
 
 RUN npm build
 
-FROM nginx:latest
+FROM nginx
 WORKDIR /app
 
 COPY --from=builder /app/dist /usr/share/nginx/html
