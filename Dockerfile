@@ -1,17 +1,17 @@
 FROM node:14 as builder  
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-COPY package.json /app/
+COPY package.json  ./
 RUN npm install
 
-COPY ./dist/ /app/dist/
-COPY ./server.js /app/
+COPY dist/ ./dist/
+COPY server.js ./
 
 RUN npm build
 
 FROM nginx
-WORKDIR /app
+WORKDIR /usr/src/app
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 
