@@ -1,54 +1,56 @@
 pipeline {
-  environment {
-    imagename = 'olalere1/group3image'
-    registryCredential = 'dockerhublogin'
-    DOCKERFILE_PATH = 'https://raw.githubusercontent.com/Olalere1/RQGenApp/main/Dockerfile'
-    dockerImage = ''
-  }
-  agent any
-  stages {
-    stage('Cloning Git') {
-      steps {
-        git([url: 'https://github.com/Olalere1/RQGenApp.git', branch: 'main', credentialsId: 'github-details-again'])
 
+  environment {
+    dockerimagename = "olalere1/group3image"
+    dockerImage = ""
+  }
+
+  agent any
+
+  stages {
+
+    stage('Checkout Source') {
+      steps {
+        git 'https://github.com/Olalere1/RQGenApp.git'
       }
     }
-    stage('Building image') {
+
+    stage('Build image') {
       steps{
         script {
-          //dockerImage = docker.build 'https://github.com/Olalere1/RQGenApp/blob/main/Dockerfile'
-            dockerImage = docker.build("${env.imagename}:latest", "${env.DOCKERFILE_PATH}")
+          dockerImage = docker.build dockerimagename
         }
       }
     }
-    stage('Deploy Image') {
+
+    stage('Pushing Image') {
+      environment {
+               registryCredential = 'dockerhublogin'
+           }
       steps{
         script {
           docker.withRegistry( 'https://registry.hub.docker.com', registryCredential ) {
-            dockerImage.push("$BUILD_NUMBER")
-             dockerImage.push('latest')
+            dockerImage.push("latest")
           }
         }
       }
     }
-    stage('Deploy to K8s') {
-      steps{
-        script {
-          sh "sed -i 's,TEST_IMAGE_NAME,olalere1/group3image:$BUILD_NUMBER,' service_volume_statefulset.yml"
-          sh "cat service_volume_statefulset.yml"
-          sh "kubectl --kubeconfig=/Users/ola/.kube/config get pods"                                     // /Users/ola/Documents/config
-          sh "kubectl --kubeconfig=/Users/ola/.kube/config apply -f service_volume_statefulset.yml"
-        }
-      }
-    }
-    
-    
-    stage('Remove Unused docker image') {
-      steps{
-        sh "docker rmi $imagename:$BUILD_NUMBER"
-         sh "docker rmi $imagename:latest"
 
-      }
+    stage('Deploy to K8s')
+        {
+        steps{ 
+			withKubeConfig([credentialsId: 'mykubeconfig', serverUrl: 'http://3.228.14.174:8080']) {
+                sh 'kubectl apply -f service_volume_statefulset.yml'
+            }
+		}
     }
-  }
+      
+ }
+
+	post {
+		always {
+			sh 'docker logout'
+		}
+	}
+
 }
