@@ -1,6 +1,6 @@
 pipeline {
   environment {
-    imagename = "olalere1/webappimage10"
+    imagename = "olalere1/pleasebuildooo"
     registryCredential = 'dockerhublogin'
     DOCKERFILE_PATH = 'https://raw.githubusercontent.com/Olalere1/RQGenApp/main/Dockerfile'
     dockerImage = ''
@@ -34,7 +34,7 @@ pipeline {
     stage('Deploy to K8s') {
       steps{
         script {
-          sh "sed -i 's,TEST_IMAGE_NAME,olalere1/webappimage10:$BUILD_NUMBER,' service_volume_statefulset.yml"
+          sh "sed -i 's,TEST_IMAGE_NAME,olalere1/pleasebuildooo:$BUILD_NUMBER,' service_volume_statefulset.yml"
           sh "cat service_volume_statefulset.yml"
           sh "kubectl --kubeconfig=/Users/ola/.kube/config get pods"                                     // /Users/ola/Documents/config
           sh "kubectl --kubeconfig=/Users/ola/.kube/config apply -f service_volume_statefulset.yml"
